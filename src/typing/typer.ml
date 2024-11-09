@@ -1847,20 +1847,21 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 		| "i128" ->
 			if String.length s > 34 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
 
-			(*
-				This uses a different method apart from the i64 suffix code.
-    				This is because ocaml doesn't have an Int128 type.
-				I, SomeGuyWhoLikesCoding, am NOT familiar with the ocaml syntax.
-       			*)
-
-			let high = Int64.of_string (String.sub s 2  18) in
-			let low  = Int64.of_string (String.sub s 19 34) in
-
 			let ident = EConst (Ident "haxe"), p in
 			let field = efield ((efield (ident, "Int128"), p), "make"), p in
 
-			let arg_high = EConst (Int (Int64.to_string(high), Some "i64")), p in
-			let arg_low  = EConst (Int (Int64.to_string(low), Some "i64")), p in
+			let arg_high = EConst (Int ((String.sub s 0  16), Some "i64")), p in
+			let arg_low  = EConst (Int ((String.sub s 18 34), Some "i64")), p in
+			let call     = ECall (field, [ arg_high; arg_low ]), p in
+			type_expr ctx call with_type
+		| "i256" ->
+			if String.length s > 66 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+
+			let ident = EConst (Ident "haxe"), p in
+			let field = efield ((efield (ident, "Int256"), p), "make"), p in
+
+			let arg_high = EConst (Int ((String.sub s 0  32), Some "i128")), p in
+			let arg_low  = EConst (Int ((String.sub s 34 66), Some "i128")), p in
 			let call     = ECall (field, [ arg_high; arg_low ]), p in
 			type_expr ctx call with_type
 		| "u32" ->
