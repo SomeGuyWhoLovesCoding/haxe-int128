@@ -116,4 +116,3 @@ extern class Native_TracyProfiler {
     typedef TracyProfiler = Cppia_TracyProfiler;
 #else
     typedef TracyProfiler = Native_TracyProfiler;
-#end
