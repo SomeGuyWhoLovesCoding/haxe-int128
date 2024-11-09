@@ -22,19 +22,19 @@
 
 package haxe;
 
-using haxe.Int128;
+using haxe.Int256;
 
 /**
-	Helper for parsing to `Int128` instances.
+	Helper for parsing to `Int256` instances.
 **/
-class Int128Helper {
+class Int256Helper {
 	/**
-		Create `Int128` from given string.
+		Create `Int256` from given string.
 	**/
-	public static function parseString(sParam:String):Int128 {
-		var base = Int128.ofInt(10);
-		var current = Int128.ofInt(0);
-		var multiplier = Int128.ofInt(1);
+	public static function parseString(sParam:String):Int256 {
+		var base = Int256.ofInt(10);
+		var current = Int256.ofInt(0);
+		var multiplier = Int256.ofInt(1);
 		var sIsNegative = false;
 
 		var s = StringTools.trim(sParam);
@@ -52,29 +52,29 @@ class Int128Helper {
 			}
 
 			if (digitInt != 0) {
-				var digit:Int128 = Int128.ofInt(digitInt);
+				var digit:Int256 = Int256.ofInt(digitInt);
 				if (sIsNegative) {
-					current = Int128.sub(current, Int128.mul(multiplier, digit));
-					if (!Int128.isNeg(current)) {
+					current = Int256.sub(current, Int256.mul(multiplier, digit));
+					if (!Int256.isNeg(current)) {
 						throw "NumberFormatError: Underflow";
 					}
 				} else {
-					current = Int128.add(current, Int128.mul(multiplier, digit));
-					if (Int128.isNeg(current)) {
+					current = Int256.add(current, Int256.mul(multiplier, digit));
+					if (Int256.isNeg(current)) {
 						throw "NumberFormatError: Overflow";
 					}
 				}
 			}
 
-			multiplier = Int128.mul(multiplier, base);
+			multiplier = Int256.mul(multiplier, base);
 		}
 		return current;
 	}
 
 	/**
-		Create `Int128` from given float.
+		Create `Int256` from given float.
 	**/
-	public static function fromFloat(f:Float):Int128 {
+	public static function fromFloat(f:Float):Int256 {
 		if (Math.isNaN(f) || !Math.isFinite(f)) {
 			throw "Number is NaN or Infinite";
 		}
@@ -92,7 +92,7 @@ class Int128Helper {
 			throw "Conversion underflow";
 		}
 
-		var result = Int128.ofInt(0);
+		var result = Int256.ofInt(0);
 		var neg = noFractions < 0;
 		var rest = neg ? -noFractions : noFractions;
 
@@ -101,61 +101,79 @@ class Int128Helper {
 			var curr = rest % 2;
 			rest = rest / 2;
 			if (curr >= 1) {
-				result = Int128.add(result, Int128.shl(Int128.ofInt(1), i));
+				result = Int256.add(result, Int256.shl(Int256.ofInt(1), i));
 			}
 			i++;
 		}
 
 		if (neg) {
-			result = Int128.neg(result);
+			result = Int256.neg(result);
 		}
 
 		return result;
 	}
 
 	/**
-		The maximum `Int128` value.
+		The maximum `Int256` value.
 	 */
-	public static var maxValue:Int128 = Int128.make(Int64Helper.maxValue, -1);
+	public static var maxValue:Int256 = Int256.make(Int128Helper.maxValue, -1);
 
 	/**
-		The minimum `Int128` value.
+		The minimum `Int256` value.
 	 */
-	public static var minValue:Int128 = ~maxValue;
+	public static var minValue:Int256 = ~maxValue;
 
 	/**
-		The maximum `Int64` value with the type `Int128`.
+		The maximum `Int64` value with the type `Int256`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue64:Int128 = Int128.ofInt64(Int64Helper.maxValue);
+	public static var maxValue64:Int256 = Int256.ofInt64(Int64Helper.maxValue);
 
 	/**
-		The minimum `Int64` value with the type `Int128`.
+		The minimum `Int64` value with the type `Int256`.
 		This is handy for type comparison.
 	 */
-	public static var minValue64:Int128 = ~maxValue64;
+	public static var minValue64:Int256 = ~maxValue64;
 
 	/**
-		The maximum unsigned `Int64` value with the type `Int128`.
+		The maximum unsigned `Int64` value with the type `Int256`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue64U:Int128 = Int128.make(0, -1);
+	public static var maxValue64U:Int256 = Int128.make(1, 0);
 
 	/**
-		The maximum `Int32` value with the type `Int128`.
+		The maximum `Int128` value with the type `Int256`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue32:Int128 = Int128.ofInt64(Int64Helper.maxValue32);
+	public static var maxValue128:Int256 = Int256.ofInt128(Int128Helper.maxValue);
 
 	/**
-		The minimum `Int32` value with the type `Int128`.
+		The minimum `Int128` value with the type `Int256`.
 		This is handy for type comparison.
 	 */
-	public static var minValue32:Int128 = ~maxValue32;
+	public static var minValue128:Int256 = ~maxValue128;
+
+	/**
+		The maximum unsigned `Int128` value with the type `Int256`.
+		This is handy for type comparison.
+	 */
+	public static var maxValue128U:Int256 = Int256.make(0, -1);
+
+	/**
+		The maximum `Int32` value with the type `Int256`.
+		This is handy for type comparison.
+	 */
+	public static var maxValue32:Int256 = Int256.ofInt128(Int128Helper.maxValue32);
+
+	/**
+		The minimum `Int32` value with the type `Int256`.
+		This is handy for type comparison.
+	 */
+	public static var minValue32:Int256 = ~maxValue32;
 
 	/**
 		The maximum unsigned `Int32` value with the type `Int128`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue32U:Int128 = Int128.make(0, -1);
+	public static var maxValue32U:Int256 = Int128.make(0, -1);
 }
