@@ -1850,7 +1850,7 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			let ident = EConst (Ident "haxe"), p in
 			let field = efield ((efield (ident, "Int128"), p), "make"), p in
 
-			let arg_high = EConst (Int ((String.sub s 0  16), Some "i64")), p in
+			let arg_high = EConst (Int ((String.sub s 2  18), Some "i64")), p in
 			let arg_low  = EConst (Int ((String.sub s 18 34), Some "i64")), p in
 			let call     = ECall (field, [ arg_high; arg_low ]), p in
 			type_expr ctx call with_type
@@ -1860,7 +1860,7 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			let ident = EConst (Ident "haxe"), p in
 			let field = efield ((efield (ident, "Int256"), p), "make"), p in
 
-			let arg_high = EConst (Int ((String.sub s 0  32), Some "i128")), p in
+			let arg_high = EConst (Int ((String.sub s 2  34), Some "i128")), p in
 			let arg_low  = EConst (Int ((String.sub s 34 66), Some "i128")), p in
 			let call     = ECall (field, [ arg_high; arg_low ]), p in
 			type_expr ctx call with_type
