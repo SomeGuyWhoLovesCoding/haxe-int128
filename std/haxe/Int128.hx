@@ -78,7 +78,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	public static inline function toInt64(x:Int128):Int64 {
 		var res:Int64 = x.low;
 
-		// This is a completely different and overflow check because we're using Int128's.
+		// This is a completely different and overflow check because we're using Int256's.
 		// It can only be triggered if you input an Int128 as the function parameter.
 		if ((!isNeg(x) && Int128.isNeg(res)) || (x.high != x.low >> 63))
 			throw "Overflow";

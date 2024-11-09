@@ -157,5 +157,5 @@ class Int128Helper {
 		The maximum unsigned `Int32` value with the type `Int128`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue32U:Int128 = Int128.make(0, -1);
+	public static var maxValue32U:Int128 = Int64.make(0, -1);
 }

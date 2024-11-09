@@ -1856,7 +1856,7 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			let arg_high = EConst (Int (Int64.to_string(high), Some "i64")), p in
 			let arg_low  = EConst (Int (Int64.to_string(low), Some "i64")), p in
 			let call     = ECall (field, [ arg_high; arg_low ]), p in
-                        type_expr ctx call with_type
+			type_expr ctx call with_type
 		| "i256" ->
 			if String.length s > 66 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
 
@@ -1866,14 +1866,43 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			let low_low  = Int64.of_string (String.sub s 50 66) in
 
 			let ident = EConst (Ident "haxe"), p in
-			let field = efield ((efield (ident, "Int128"), p), "make"), p in
+			let field = efield ((efield (ident, "Int256"), p), "make"), p in
+			let field2 = efield ((efield (ident, "Int128"), p), "make"), p in
 
 			let arg_high_high = EConst (Int (Int64.to_string(high_high), Some "i64")), p in
 			let arg_high_low  = EConst (Int (Int64.to_string(high_low), Some "i64")), p in
                         let arg_low_high = EConst (Int (Int64.to_string(low_high), Some "i64")), p in
 			let arg_low_low  = EConst (Int (Int64.to_string(low_low), Some "i64")), p in
 
-			let call     = ECall ( field, [ ECall ( field, [ arg_high_high, arg_high_low ] ), ECall ( field, [ arg_low_high, arg_low_low ] ) ]), p in
+			let call     = ECall ( field, [ ECall ( field2, [ arg_high_high, arg_high_low ] ), ECall ( field2, [ arg_low_high, arg_low_low ] ) ]), p in
+			type_expr ctx call with_type
+		| "i512" ->
+			if String.length s > 130 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+
+			let high_high_high = Int64.of_string (String.sub s 2  18) in
+			let high_high_low  = Int64.of_string (String.sub s 20 34) in
+			let high_low_high = Int64.of_string (String.sub s 34  50) in
+			let high_low_low  = Int64.of_string (String.sub s 50 66) in
+			let low_high_high = Int64.of_string (String.sub s 66  82) in
+			let low_high_low  = Int64.of_string (String.sub s 82 98) in
+			let low_low_high = Int64.of_string (String.sub s 98  114) in
+			let low_low_low  = Int64.of_string (String.sub s 114 130) in
+
+			let ident = EConst (Ident "haxe"), p in
+			let field = efield ((efield (ident, "Int512"), p), "make"), p in
+			let field2 = efield ((efield (ident, "Int256"), p), "make"), p in
+			let field3 = efield ((efield (ident, "Int128"), p), "make"), p in
+
+			let arg_high_high_high = EConst (Int (Int64.to_string(high_high_high), Some "i64")), p in
+			let arg_high_high_low  = EConst (Int (Int64.to_string(high_high_low), Some "i64")), p in
+			let arg_high_low_high = EConst (Int (Int64.to_string(high_low_high), Some "i64")), p in
+			let arg_high_low_low  = EConst (Int (Int64.to_string(high_low_low), Some "i64")), p in
+			let arg_low_high_high = EConst (Int (Int64.to_string(low_high_high), Some "i64")), p in
+			let arg_low_high_low  = EConst (Int (Int64.to_string(low_high_low), Some "i64")), p in
+			let arg_low_low_high = EConst (Int (Int64.to_string(low_low_high), Some "i64")), p in
+			let arg_low_low_low  = EConst (Int (Int64.to_string(low_low_low), Some "i64")), p in
+
+			let call     = ECall ( field, [ ECall ( field2, [ ECall ( field3, [ arg_high_high_high, arg_high_high_low ] ), ECall ( field3, [ arg_high_low_high, arg_high_low_low ] ) ] ), ECall ( field2, [ ECall ( field3, [ arg_low_high_high, arg_low_high_low ] ), ECall ( field3, [ arg_low_low_high, arg_low_low_low ] ) ] ) ] ), p in
 			type_expr ctx call with_type
 		| "u32" ->
 			let check = ECheckType ((EConst (Int (s, None)), p), (make_ptp_th (mk_type_path ([],"UInt")) p)), p in

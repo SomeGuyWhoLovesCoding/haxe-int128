@@ -22,19 +22,19 @@
 
 package haxe;
 
-using haxe.Int256;
+using haxe.Int512;
 
 /**
-	Helper for parsing to `Int256` instances.
+	Helper for parsing to `Int512` instances.
 **/
-class Int256Helper {
+class Int512Helper {
 	/**
 		Create `Int256` from given string.
 	**/
-	public static function parseString(sParam:String):Int256 {
-		var base = Int256.ofInt(10);
-		var current = Int256.ofInt(0);
-		var multiplier = Int256.ofInt(1);
+	public static function parseString(sParam:String):Int512 {
+		var base = Int512.ofInt(10);
+		var current = Int512.ofInt(0);
+		var multiplier = Int512.ofInt(1);
 		var sIsNegative = false;
 
 		var s = StringTools.trim(sParam);
@@ -52,29 +52,29 @@ class Int256Helper {
 			}
 
 			if (digitInt != 0) {
-				var digit:Int256 = Int256.ofInt(digitInt);
+				var digit:Int512 = Int512.ofInt(digitInt);
 				if (sIsNegative) {
-					current = Int256.sub(current, Int256.mul(multiplier, digit));
-					if (!Int256.isNeg(current)) {
+					current = Int512.sub(current, Int512.mul(multiplier, digit));
+					if (!Int512.isNeg(current)) {
 						throw "NumberFormatError: Underflow";
 					}
 				} else {
-					current = Int256.add(current, Int256.mul(multiplier, digit));
-					if (Int256.isNeg(current)) {
+					current = Int512.add(current, Int512.mul(multiplier, digit));
+					if (Int512.isNeg(current)) {
 						throw "NumberFormatError: Overflow";
 					}
 				}
 			}
 
-			multiplier = Int256.mul(multiplier, base);
+			multiplier = Int512.mul(multiplier, base);
 		}
 		return current;
 	}
 
 	/**
-		Create `Int256` from given float.
+		Create `Int512` from given float.
 	**/
-	public static function fromFloat(f:Float):Int256 {
+	public static function fromFloat(f:Float):Int512 {
 		if (Math.isNaN(f) || !Math.isFinite(f)) {
 			throw "Number is NaN or Infinite";
 		}
@@ -92,7 +92,7 @@ class Int256Helper {
 			throw "Conversion underflow";
 		}
 
-		var result = Int256.ofInt(0);
+		var result = Int512.ofInt(0);
 		var neg = noFractions < 0;
 		var rest = neg ? -noFractions : noFractions;
 
@@ -101,79 +101,97 @@ class Int256Helper {
 			var curr = rest % 2;
 			rest = rest / 2;
 			if (curr >= 1) {
-				result = Int256.add(result, Int256.shl(Int256.ofInt(1), i));
+				result = Int512.add(result, Int512.shl(Int512.ofInt(1), i));
 			}
 			i++;
 		}
 
 		if (neg) {
-			result = Int256.neg(result);
+			result = Int512.neg(result);
 		}
 
 		return result;
 	}
 
 	/**
-		The maximum `Int256` value.
+		The maximum `Int512` value.
 	 */
-	public static var maxValue:Int256 = Int256.make(Int128Helper.maxValue, -1);
+	public static var maxValue:Int512 = Int512.make(Int256Helper.maxValue, -1);
 
 	/**
-		The minimum `Int256` value.
+		The minimum `Int512` value.
 	 */
-	public static var minValue:Int256 = ~maxValue;
+	public static var minValue:Int512 = ~maxValue;
 
 	/**
-		The maximum `Int64` value with the type `Int256`.
+		The maximum `Int64` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue64:Int256 = Int256.ofInt64(Int64Helper.maxValue);
+	public static var maxValue64:Int512 = Int512.ofInt64(Int64Helper.maxValue);
 
 	/**
-		The minimum `Int64` value with the type `Int256`.
+		The minimum `Int64` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var minValue64:Int256 = ~maxValue64;
+	public static var minValue64:Int512 = ~maxValue64;
 
 	/**
-		The maximum unsigned `Int64` value with the type `Int256`.
+		The maximum unsigned `Int64` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue64U:Int256 = Int128.make(1, 0);
+	public static var maxValue64U:Int512 = Int512.make(1, 0);
 
 	/**
-		The maximum `Int128` value with the type `Int256`.
+		The maximum `Int128` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue128:Int256 = Int256.ofInt128(Int128Helper.maxValue);
+	public static var maxValue128:Int512 = Int512.ofInt128(Int128Helper.maxValue);
 
 	/**
-		The minimum `Int128` value with the type `Int256`.
+		The minimum `Int128` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var minValue128:Int256 = ~maxValue128;
+	public static var minValue128:Int512 = ~maxValue128;
 
 	/**
-		The maximum unsigned `Int128` value with the type `Int256`.
+		The maximum unsigned `Int128` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue128U:Int256 = Int256.make(0, -1);
+	public static var maxValue128U:Int512 = Int256.make(0, -1);
 
 	/**
-		The maximum `Int32` value with the type `Int256`.
+		The maximum `Int256` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue32:Int256 = Int256.ofInt128(Int128Helper.maxValue32);
+	public static var maxValue256:Int512 = Int512.ofInt256(Int256Helper.maxValue);
 
 	/**
-		The minimum `Int32` value with the type `Int256`.
+		The minimum `Int256` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var minValue32:Int256 = ~maxValue32;
+	public static var minValue256:Int512 = ~maxValue256;
 
 	/**
-		The maximum unsigned `Int32` value with the type `Int256`.
+		The maximum unsigned `Int256` value with the type `Int512`.
 		This is handy for type comparison.
 	 */
-	public static var maxValue32U:Int256 = Int64.make(0, -1);
+	public static var maxValue256U:Int512 = Int512.make(0, -1);
+
+	/**
+		The maximum `Int32` value with the type `Int512`.
+		This is handy for type comparison.
+	 */
+	public static var maxValue32:Int512 = Int512.ofInt256(Int256Helper.maxValue32);
+
+	/**
+		The minimum `Int32` value with the type `Int512`.
+		This is handy for type comparison.
+	 */
+	public static var minValue32:Int512 = ~maxValue32;
+
+	/**
+		The maximum unsigned `Int32` value with the type `Int512`.
+		This is handy for type comparison.
+	 */
+	public static var maxValue32U:Int512 = Int64.make(0, -1);
 }
