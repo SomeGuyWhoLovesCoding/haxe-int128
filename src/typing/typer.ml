@@ -1832,6 +1832,7 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			with _ -> raise_typing_error ("Cannot represent " ^ s ^ " with a 32 bit integer") p)
 		| "i64" ->
 			if String.length s > 18 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+			if String.length > 19 then raise_typing_error "Numeral integer constant too big" p;
 
 			let i64  = Int64.of_string s in
 			let high = Int64.to_int32 (Int64.shift_right i64 32) in
@@ -1846,8 +1847,9 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			type_expr ctx call with_type
 		| "i128" ->
 			if String.length s > 34 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+			if String.length > 39 then raise_typing_error "Numeral integer constant too big" p;
 
-			let high = Int64.of_string (String.sub s 2  18) in
+			let high = Int64.of_string (String.sub s 0  18) in
 			let low  = Int64.of_string (String.sub s 20 34) in
 
 			let ident = EConst (Ident "haxe"), p in
@@ -1859,8 +1861,9 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			type_expr ctx call with_type
 		| "i256" ->
 			if String.length s > 66 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+			if String.length > 77 then raise_typing_error "Numeral integer constant too big" p;
 
-			let high_high = Int64.of_string (String.sub s 2  18) in
+			let high_high = Int64.of_string (String.sub s 0  18) in
 			let high_low  = Int64.of_string (String.sub s 20 34) in
                         let low_high = Int64.of_string (String.sub s 34  50) in
 			let low_low  = Int64.of_string (String.sub s 50 66) in
@@ -1878,8 +1881,9 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 			type_expr ctx call with_type
 		| "i512" ->
 			if String.length s > 130 && String.sub s 0 2 = "0x" then raise_typing_error "Invalid hexadecimal integer" p;
+			if String.length > 154 then raise_typing_error "Numeral integer constant too big" p;
 
-			let high_high_high = Int64.of_string (String.sub s 2  18) in
+			let high_high_high = Int64.of_string (String.sub s 0  18) in
 			let high_high_low  = Int64.of_string (String.sub s 20 34) in
 			let high_low_high = Int64.of_string (String.sub s 34  50) in
 			let high_low_low  = Int64.of_string (String.sub s 50 66) in
