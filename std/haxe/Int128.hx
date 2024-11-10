@@ -46,28 +46,28 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Construct an Int128 from two 64-bit words `high` and `low`.
 	**/
-	public static inline function make(high:Int64, low:Int64):Int128
+	public static function make(high:Int64, low:Int64):Int128
 		return new Int128(new __Int128(high, low));
 
 	/**
 		Returns an Int128 with the value of the Int `x`.
 		`x` is sign-extended to fill 128 bits.
 	**/
-	@:from public static inline function ofInt(x:Int):Int128
+	@:from public static function ofInt(x:Int):Int128
 		#if lua return make((x : Int32) >> 31, (x : Int32)); #else return make(x >> 31, x); #end
 
 	/**
 		Returns an Int128 with the value of the Int64 `x`.
 		`x` is sign-extended to fill 128 bits.
 	**/
-	@:from public static inline function ofInt64(x:Int64):Int128
+	@:from public static function ofInt64(x:Int64):Int128
 		#if lua return make((x : Int64) >> 63, (x : Int64)); #else return make(x >> 63, x); #end
 
 	/**
 		Returns an Int with the value of the Int128 `x`.
 		Throws an exception  if `x` cannot be represented in 32 bits.
 	**/
-	public static inline function toInt(x:Int128):Int {
+	public static function toInt(x:Int128):Int {
 		return Int64.toInt(x.low);
 	}
 
@@ -75,7 +75,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns an Int64 with the value of the Int128 `x`.
 		Throws an exception  if `x` cannot be represented in 64 bits.
 	**/
-	public static inline function toInt64(x:Int128):Int64 {
+	public static function toInt64(x:Int128):Int64 {
 		var res:Int64 = x.low;
 
 		// This is a completely different and overflow check because we're using Int256's.
@@ -100,13 +100,13 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Returns `true` if `x` is less than zero.
 	**/
-	public static inline function isNeg(x:Int128):Bool
+	public static function isNeg(x:Int128):Bool
 		return x.high < 0 && x.high.high < 0;
 
 	/**
 		Returns `true` if `x` is exactly zero.
 	**/
-	public static inline function isZero(x:Int128):Bool
+	public static function isZero(x:Int128):Bool
 		return x == 0;
 
 	/**
@@ -114,7 +114,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns a negative value if `a < b`, positive if `a > b`,
 		or 0 if `a == b`.
 	**/
-	public static inline function compare(a:Int128, b:Int128):Int64 {
+	public static function compare(a:Int128, b:Int128):Int64 {
 		var v = a.high - b.high;
 		v = if (v != 0) v else Int64.ucompare(a.low, b.low);
 		return a.high < 0 ? (b.high < 0 ? v : -1) : (b.high >= 0 ? v : 1);
@@ -125,7 +125,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns a negative value if `a < b`, positive if `a > b`,
 		or 0 if `a == b`.
 	**/
-	public static inline function ucompare(a:Int128, b:Int128):Int64 {
+	public static function ucompare(a:Int128, b:Int128):Int64 {
 		var v = Int64.ucompare(a.high, b.high);
 		return if (v != 0) v else Int64.ucompare(a.low, b.low);
 	}
@@ -133,7 +133,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Returns a signed decimal `String` representation of `x`.
 	**/
-	public static inline function toStr(x:Int128):String
+	public static function toStr(x:Int128):String
 		return x.toString();
 
 	function toString():String {
@@ -144,14 +144,12 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		var neg = false;
 		if (i.isNeg()) {
 			neg = true;
-			// i = -i; cannot negate here as --170141183460469231731687303715884105728 = -170141183460469231731687303715884105728
 		}
-		var ten:Int128 = Int128.ofInt(10);
 		while (i != 0) {
-			var r = i.divMod(ten);
+			var r = i.divMod10();
 			if (r.modulus.isNeg()) {
-				str = -(r.modulus).low + str;
-				i = -r.quotient;
+				str = Int128.neg(r.modulus).low + str;
+				i = Int128.neg(r.quotient);
 			} else {
 				str = r.modulus.low + str;
 				i = r.quotient;
@@ -162,11 +160,11 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		return str;
 	}
 
-	public static inline function parseString(sParam:String):Int128 {
+	public static function parseString(sParam:String):Int128 {
 		return Int128Helper.parseString(sParam);
 	}
 
-	public static inline function fromFloat(f:Float):Int128 {
+	public static function fromFloat(f:Float):Int128 {
 		return Int128Helper.fromFloat(f);
 	}
 
@@ -177,7 +175,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	public static function divMod(dividend:Int128, divisor:Int128):{quotient:Int128, modulus:Int128} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (Int64.toInt(divisor.low)) {
+			switch (toInt(divisor)) {
 				case 0:
 					throw "divide by zero";
 				case 1:
@@ -222,9 +220,39 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	}
 
 	/**
+		Performs signed integer divison of `dividend` by `divisor`, but this time, you divide by 10 in an efficient way.
+		Returns `{ quotient : Int128, modulus : Int128 }`.
+	**/
+	public static function divMod10(v:Int128):{quotient:Int128, modulus:Int128} {
+		var n:Int128 = cast v;
+
+		var divSign:Bool = n.isNeg();
+
+		if (divSign) {
+			n = Int128.neg(n);
+		}
+
+		var q:Int128, r:Int128, m:Int128;
+		q = (n >> 1) + (n >> 2);
+		q += (q >> 4);
+		q += (q >> 8);
+		q += (q >> 16);
+		q += (q >> 32);
+		q += (q >> 64);
+		q >>= 3;
+		r = n - (((q << 2) + q) << 1);
+		q += (r > 9 ? 1 : 0);
+		m = n - (q * 10);
+		return {
+			quotient: divSign ? Int128.neg(q) : q,
+			modulus: divSign ? Int128.neg(m) : m
+		};
+	}
+
+	/**
 		Returns the negative of `x`.
 	**/
-	@:op(-A) public static inline function neg(x:Int128):Int128 {
+	@:op(-A) public static function neg(x:Int128):Int128 {
 		var high = ~x.high;
 		var low = -x.low;
 		if (low == 0)
@@ -263,7 +291,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Returns the sum of `a` and `b`.
 	**/
-	@:op(A + B) public static inline function add(a:Int128, b:Int128):Int128 {
+	@:op(A + B) public static function add(a:Int128, b:Int128):Int128 {
 		var high = a.high + b.high;
 		var low = a.low + b.low;
 		if (Int64.ucompare(low, a.low) < 0)
@@ -274,7 +302,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Returns `a` minus `b`.
 	**/
-	@:op(A - B) public static inline function sub(a:Int128, b:Int128):Int128 {
+	@:op(A - B) public static function sub(a:Int128, b:Int128):Int128 {
 		var high = a.high - b.high;
 		var low = a.low - b.low;
 		if (Int64.ucompare(a.low, b.low) < 0)
@@ -286,7 +314,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns the product of `a` and `b`.
 	**/
 	@:op(A * B)
-	public static #if !lua inline #end function mul(a:Int128, b:Int128):Int128 {
+	public static function mul(a:Int128, b:Int128):Int128 {
 		var mask = Int64Helper.maxValue32U;
 		var aLow = a.low & mask, aHigh = a.low >>> 32;
 		var bLow = b.low & mask, bHigh = b.low >>> 32;
@@ -311,67 +339,67 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	/**
 		Returns the quotient of `a` divided by `b`.
 	**/
-	@:op(A / B) public static inline function div(a:Int128, b:Int128):Int128
+	@:op(A / B) public static function div(a:Int128, b:Int128):Int128
 		return divMod(a, b).quotient;
 
 	/**
 		Returns the modulus of `a` divided by `b`.
 	**/
-	@:op(A % B) public static inline function mod(a:Int128, b:Int128):Int128
+	@:op(A % B) public static function mod(a:Int128, b:Int128):Int128
 		return divMod(a, b).modulus;
 
 	/**
 		Returns `true` if `a` is equal to `b`.
 	**/
-	@:op(A == B) public static inline function eq(a:Int128, b:Int128):Bool
+	@:op(A == B) public static function eq(a:Int128, b:Int128):Bool
 		return a.high == b.high && a.low == b.low;
 
 	/**
 		Returns `true` if `a` is not equal to `b`.
 	**/
-	@:op(A != B) public static inline function neq(a:Int128, b:Int128):Bool
+	@:op(A != B) public static function neq(a:Int128, b:Int128):Bool
 		return a.high != b.high || a.low != b.low;
 
-	@:op(A < B) private static inline function lt(a:Int128, b:Int128):Bool
+	@:op(A < B) private static function lt(a:Int128, b:Int128):Bool
 		return compare(a, b) < 0;
 
-	@:op(A <= B) private static inline function lte(a:Int128, b:Int128):Bool
+	@:op(A <= B) private static function lte(a:Int128, b:Int128):Bool
 		return compare(a, b) <= 0;
 
-	@:op(A > B) private static inline function gt(a:Int128, b:Int128):Bool
+	@:op(A > B) private static function gt(a:Int128, b:Int128):Bool
 		return compare(a, b) > 0;
 
-	@:op(A >= B) private static inline function gte(a:Int128, b:Int128):Bool
+	@:op(A >= B) private static function gte(a:Int128, b:Int128):Bool
 		return compare(a, b) >= 0;
 
 	/**
 		Returns the bitwise NOT of `a`.
 	**/
-	@:op(~A) private static inline function complement(a:Int128):Int128
+	@:op(~A) private static function complement(a:Int128):Int128
 		return make(~a.high, ~a.low);
 
 	/**
 		Returns the bitwise AND of `a` and `b`.
 	**/
-	@:op(A & B) public static inline function and(a:Int128, b:Int128):Int128
+	@:op(A & B) public static function and(a:Int128, b:Int128):Int128
 		return make(a.high & b.high, a.low & b.low);
 
 	/**
 		Returns the bitwise OR of `a` and `b`.
 	**/
-	@:op(A | B) public static inline function or(a:Int128, b:Int128):Int128
+	@:op(A | B) public static function or(a:Int128, b:Int128):Int128
 		return make(a.high | b.high, a.low | b.low);
 
 	/**
 		Returns the bitwise XOR of `a` and `b`.
 	**/
-	@:op(A ^ B) public static inline function xor(a:Int128, b:Int128):Int128
+	@:op(A ^ B) public static function xor(a:Int128, b:Int128):Int128
 		return make(a.high ^ b.high, a.low ^ b.low);
 
 	/**
 		Returns `a` left-shifted by `b` bits.
 	**/
-	@:op(A << B) public static inline function shl(a:Int128, b:Int):Int128 {
+	@:op(A << B) public static function shl(a:Int128, b:Int):Int128 {
 		b &= 127;
 		return if (b == 0) a.copy() else if (b < 64) make((a.high << b) | (a.low >>> (64 - b)), a.low << b) else make(a.low << (b - 64), 0);
 	}
@@ -380,7 +408,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns `a` right-shifted by `b` bits in signed mode.
 		`a` is sign-extended.
 	**/
-	@:op(A >> B) public static inline function shr(a:Int128, b:Int):Int128 {
+	@:op(A >> B) public static function shr(a:Int128, b:Int):Int128 {
 		b &= 127;
 		return if (b == 0) a.copy() else if (b < 64) make(a.high >> b, (a.high << (64 - b)) | (a.low >>> b)); else make(a.high >> 63, a.high >> (b - 64));
 	}
@@ -389,7 +417,7 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		Returns `a` right-shifted by `b` bits in unsigned mode.
 		`a` is padded with zeroes.
 	**/
-	@:op(A >>> B) public static inline function ushr(a:Int128, b:Int):Int128 {
+	@:op(A >>> B) public static function ushr(a:Int128, b:Int):Int128 {
 		b &= 127;
 		return if (b == 0) a.copy() else if (b < 64) make(a.high >>> b, (a.high << (64 - b)) | (a.low >>> b)); else make(0, a.high >>> (b - 64));
 	}
@@ -432,6 +460,6 @@ private class ___Int128 {
 		when tracing or calling `Std.string`. This tends not to happen when
 		`toString` is only in the abstract.
 	**/
-	public function toString():String
+	public inline function toString():String
 		return Int128.toStr(cast this);
 }

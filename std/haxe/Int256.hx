@@ -46,35 +46,35 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Construct an Int256 from two 128-bit words `high` and `low`.
 	**/
-	public static inline function make(high:Int128, low:Int128):Int256
+	public static function make(high:Int128, low:Int128):Int256
 		return new Int256(new __Int256(high, low));
 
 	/**
 		Returns an Int256 with the value of the Int `x`.
 		`x` is sign-extended to fill 256 bits.
 	**/
-	@:from public static inline function ofInt(x:Int):Int256
+	@:from public static function ofInt(x:Int):Int256
 		#if lua return make((x : Int32) >> 31, (x : Int32)); #else return make(x >> 31, x); #end
 
 	/**
 		Returns an Int256 with the value of the Int64 `x`.
 		`x` is sign-extended to fill 256 bits.
 	**/
-	@:from public static inline function ofInt64(x:Int64):Int256
+	@:from public static function ofInt64(x:Int64):Int256
 		#if lua return make((x : Int64) >> 63, (x : Int64)); #else return make(x >> 63, x); #end
 
 	/**
 		Returns an Int256 with the value of the 128 `x`.
 		`x` is sign-extended to fill 256 bits.
 	**/
-	@:from public static inline function ofInt128(x:Int128):Int256
+	@:from public static function ofInt128(x:Int128):Int256
 		#if lua return make((x : Int128) >> 127, (x : Int128)); #else return make(x >> 127, x); #end
 
 	/**
 		Returns an Int with the value of the Int256 `x`.
 		Throws an exception  if `x` cannot be represented in 32 bits.
 	**/
-	public static inline function toInt(x:Int256):Int {
+	public static function toInt(x:Int256):Int {
 		return Int128.toInt(x.low);
 	}
 
@@ -82,7 +82,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns an Int with the value of the Int256 `x`.
 		Throws an exception  if `x` cannot be represented in 64 bits.
 	**/
-	public static inline function toInt64(x:Int256):Int64 {
+	public static function toInt64(x:Int256):Int64 {
 		return Int128.toInt64(x.low);
 	}
 
@@ -90,7 +90,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns an Int64 with the value of the Int256 `x`.
 		Throws an exception  if `x` cannot be represented in 128 bits.
 	**/
-	public static inline function toInt128(x:Int256):Int128 {
+	public static function toInt128(x:Int256):Int128 {
 		var res:Int128 = x.low;
 
 		// This is a completely different and overflow check because we're using Int256's.
@@ -115,13 +115,13 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Returns `true` if `x` is less than zero.
 	**/
-	public static inline function isNeg(x:Int256):Bool
+	public static function isNeg(x:Int256):Bool
 		return x.high < 0 && x.high.high < 0;
 
 	/**
 		Returns `true` if `x` is exactly zero.
 	**/
-	public static inline function isZero(x:Int256):Bool
+	public static function isZero(x:Int256):Bool
 		return x == 0;
 
 	/**
@@ -129,7 +129,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns a negative value if `a < b`, positive if `a > b`,
 		or 0 if `a == b`.
 	**/
-	public static inline function compare(a:Int256, b:Int256):Int128 {
+	public static function compare(a:Int256, b:Int256):Int128 {
 		var v = a.high - b.high;
 		v = if (v != 0) v else Int128.ucompare(a.low, b.low);
 		return a.high < 0 ? (b.high < 0 ? v : -1) : (b.high >= 0 ? v : 1);
@@ -140,7 +140,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns a negative value if `a < b`, positive if `a > b`,
 		or 0 if `a == b`.
 	**/
-	public static inline function ucompare(a:Int256, b:Int256):Int128 {
+	public static function ucompare(a:Int256, b:Int256):Int128 {
 		var v = Int128.ucompare(a.high, b.high);
 		return if (v != 0) v else Int128.ucompare(a.low, b.low);
 	}
@@ -148,7 +148,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Returns a signed decimal `String` representation of `x`.
 	**/
-	public static inline function toStr(x:Int256):String
+	public static function toStr(x:Int256):String
 		return x.toString();
 
 	function toString():String {
@@ -159,14 +159,12 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		var neg = false;
 		if (i.isNeg()) {
 			neg = true;
-			// i = -i; cannot negate here as --57896044618658097711785492504343953926634992332820282019728792003956564819968 = -57896044618658097711785492504343953926634992332820282019728792003956564819968
 		}
-		var ten:Int256 = Int256.ofInt(10);
 		while (i != 0) {
-			var r = i.divMod(ten);
+			var r = i.divMod10();
 			if (r.modulus.isNeg()) {
-				str = -(r.modulus).low + str;
-				i = -r.quotient;
+				str = Int256.neg(r.modulus).low + str;
+				i = Int256.neg(r.quotient);
 			} else {
 				str = r.modulus.low + str;
 				i = r.quotient;
@@ -177,11 +175,11 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		return str;
 	}
 
-	public static inline function parseString(sParam:String):Int256 {
+	public static function parseString(sParam:String):Int256 {
 		return Int256Helper.parseString(sParam);
 	}
 
-	public static inline function fromFloat(f:Float):Int256 {
+	public static function fromFloat(f:Float):Int256 {
 		return Int256Helper.fromFloat(f);
 	}
 
@@ -192,7 +190,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	public static function divMod(dividend:Int256, divisor:Int256):{quotient:Int256, modulus:Int256} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (Int128.toInt(divisor.low)) {
+			switch (toInt(divisor)) {
 				case 0:
 					throw "divide by zero";
 				case 1:
@@ -237,9 +235,40 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	}
 
 	/**
+		Performs signed integer divison of `dividend` by `divisor`, but this time, you divide by 10 in an efficient way.
+		Returns `{ quotient : Int256, modulus : Int256 }`.
+	**/
+	public static function divMod10(v:Int256):{quotient:Int256, modulus:Int256} {
+		var n:Int256 = cast v;
+
+		var divSign:Bool = n.isNeg();
+
+		if (divSign) {
+			n = Int256.neg(n);
+		}
+
+		var q:Int256, r:Int256, m:Int256;
+		q = (n >> 1) + (n >> 2);
+		q += (q >> 4);
+		q += (q >> 8);
+		q += (q >> 16);
+		q += (q >> 32);
+		q += (q >> 64);
+		q += (q >> 128);
+		q >>= 3;
+		r = n - (((q << 2) + q) << 1);
+		q += (r > 9 ? 1 : 0);
+		m = n - (q * 10);
+		return {
+			quotient: divSign ? Int256.neg(q) : q,
+			modulus: divSign ? Int256.neg(m) : m
+		};
+	}
+
+	/**
 		Returns the negative of `x`.
 	**/
-	@:op(-A) public static inline function neg(x:Int256):Int256 {
+	@:op(-A) public static function neg(x:Int256):Int256 {
 		var high = ~x.high;
 		var low = -x.low;
 		if (low == 0)
@@ -278,7 +307,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Returns the sum of `a` and `b`.
 	**/
-	@:op(A + B) public static inline function add(a:Int256, b:Int256):Int256 {
+	@:op(A + B) public static function add(a:Int256, b:Int256):Int256 {
 		var high = a.high + b.high;
 		var low = a.low + b.low;
 		if (Int128.ucompare(low, a.low) < 0)
@@ -289,7 +318,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Returns `a` minus `b`.
 	**/
-	@:op(A - B) public static inline function sub(a:Int256, b:Int256):Int256 {
+	@:op(A - B) public static function sub(a:Int256, b:Int256):Int256 {
 		var high = a.high - b.high;
 		var low = a.low - b.low;
 		if (Int128.ucompare(a.low, b.low) < 0)
@@ -301,7 +330,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns the product of `a` and `b`.
 	**/
 	@:op(A * B)
-	public static #if !lua inline #end function mul(a:Int256, b:Int256):Int256 {
+	public static function mul(a:Int256, b:Int256):Int256 {
 		var mask = Int128Helper.maxValue64U;
 		var aLow = a.low & mask, aHigh = a.low >>> 64;
 		var bLow = b.low & mask, bHigh = b.low >>> 64;
@@ -326,67 +355,67 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	/**
 		Returns the quotient of `a` divided by `b`.
 	**/
-	@:op(A / B) public static inline function div(a:Int256, b:Int256):Int256
+	@:op(A / B) public static function div(a:Int256, b:Int256):Int256
 		return divMod(a, b).quotient;
 
 	/**
 		Returns the modulus of `a` divided by `b`.
 	**/
-	@:op(A % B) public static inline function mod(a:Int256, b:Int256):Int256
+	@:op(A % B) public static function mod(a:Int256, b:Int256):Int256
 		return divMod(a, b).modulus;
 
 	/**
 		Returns `true` if `a` is equal to `b`.
 	**/
-	@:op(A == B) public static inline function eq(a:Int256, b:Int256):Bool
+	@:op(A == B) public static function eq(a:Int256, b:Int256):Bool
 		return a.high == b.high && a.low == b.low;
 
 	/**
 		Returns `true` if `a` is not equal to `b`.
 	**/
-	@:op(A != B) public static inline function neq(a:Int256, b:Int256):Bool
+	@:op(A != B) public static function neq(a:Int256, b:Int256):Bool
 		return a.high != b.high || a.low != b.low;
 
-	@:op(A < B) private static inline function lt(a:Int256, b:Int256):Bool
+	@:op(A < B) private static function lt(a:Int256, b:Int256):Bool
 		return compare(a, b) < 0;
 
-	@:op(A <= B) private static inline function lte(a:Int256, b:Int256):Bool
+	@:op(A <= B) private static function lte(a:Int256, b:Int256):Bool
 		return compare(a, b) <= 0;
 
-	@:op(A > B) private static inline function gt(a:Int256, b:Int256):Bool
+	@:op(A > B) private static function gt(a:Int256, b:Int256):Bool
 		return compare(a, b) > 0;
 
-	@:op(A >= B) private static inline function gte(a:Int256, b:Int256):Bool
+	@:op(A >= B) private static function gte(a:Int256, b:Int256):Bool
 		return compare(a, b) >= 0;
 
 	/**
 		Returns the bitwise NOT of `a`.
 	**/
-	@:op(~A) private static inline function complement(a:Int256):Int256
+	@:op(~A) private static function complement(a:Int256):Int256
 		return make(~a.high, ~a.low);
 
 	/**
 		Returns the bitwise AND of `a` and `b`.
 	**/
-	@:op(A & B) public static inline function and(a:Int256, b:Int256):Int256
+	@:op(A & B) public static function and(a:Int256, b:Int256):Int256
 		return make(a.high & b.high, a.low & b.low);
 
 	/**
 		Returns the bitwise OR of `a` and `b`.
 	**/
-	@:op(A | B) public static inline function or(a:Int256, b:Int256):Int256
+	@:op(A | B) public static function or(a:Int256, b:Int256):Int256
 		return make(a.high | b.high, a.low | b.low);
 
 	/**
 		Returns the bitwise XOR of `a` and `b`.
 	**/
-	@:op(A ^ B) public static inline function xor(a:Int256, b:Int256):Int256
+	@:op(A ^ B) public static function xor(a:Int256, b:Int256):Int256
 		return make(a.high ^ b.high, a.low ^ b.low);
 
 	/**
 		Returns `a` left-shifted by `b` bits.
 	**/
-	@:op(A << B) public static inline function shl(a:Int256, b:Int):Int256 {
+	@:op(A << B) public static function shl(a:Int256, b:Int):Int256 {
 		b &= 255;
 		return if (b == 0) a.copy() else if (b < 128) make((a.high << b) | (a.low >>> (128 - b)), a.low << b) else make(a.low << (b - 128), 0);
 	}
@@ -395,7 +424,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns `a` right-shifted by `b` bits in signed mode.
 		`a` is sign-extended.
 	**/
-	@:op(A >> B) public static inline function shr(a:Int256, b:Int):Int256 {
+	@:op(A >> B) public static function shr(a:Int256, b:Int):Int256 {
 		b &= 255;
 		return if (b == 0) a.copy() else if (b < 128) make(a.high >> b, (a.high << (128 - b)) | (a.low >>> b)); else make(a.high >> 127, a.high >> (b - 128));
 	}
@@ -404,7 +433,7 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		Returns `a` right-shifted by `b` bits in unsigned mode.
 		`a` is padded with zeroes.
 	**/
-	@:op(A >>> B) public static inline function ushr(a:Int256, b:Int):Int256 {
+	@:op(A >>> B) public static function ushr(a:Int256, b:Int):Int256 {
 		b &= 255;
 		return if (b == 0) a.copy() else if (b < 128) make(a.high >>> b, (a.high << (128 - b)) | (a.low >>> b)); else make(0, a.high >>> (b - 128));
 	}
@@ -447,6 +476,6 @@ private class ___Int256 {
 		when tracing or calling `Std.string`. This tends not to happen when
 		`toString` is only in the abstract.
 	**/
-	public function toString():String
+	public inline function toString():String
 		return Int256.toStr(cast this);
 }
