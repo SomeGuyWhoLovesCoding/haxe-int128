@@ -145,8 +145,9 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		if (i.isNeg()) {
 			neg = true;
 		}
+		var ten:Int128 = 10;
 		while (i != 0) {
-			var r = i.divMod10();
+			var r = i.divMod(ten);
 			if (r.modulus.isNeg()) {
 				str = Int128.neg(r.modulus).low + str;
 				i = Int128.neg(r.quotient);
@@ -220,36 +221,6 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	}
 
 	/**
-		Performs signed integer divison of `dividend` by `divisor`, but this time, you divide by 10 in an efficient way.
-		Returns `{ quotient : Int128, modulus : Int128 }`.
-	**/
-	public static function divMod10(v:Int128):{quotient:Int128, modulus:Int128} {
-		var n:Int128 = cast v;
-
-		var divSign:Bool = n.isNeg();
-
-		if (divSign) {
-			n = Int128.neg(n);
-		}
-
-		var q:Int128, r:Int128, m:Int128;
-		q = (n >> 1) + (n >> 2);
-		q += (q >> 4);
-		q += (q >> 8);
-		q += (q >> 16);
-		q += (q >> 32);
-		q += (q >> 64);
-		q >>= 3;
-		r = n - (((q << 2) + q) << 1);
-		q += (r > 9 ? 1 : 0);
-		m = n - (q * 10);
-		return {
-			quotient: divSign ? Int128.neg(q) : q,
-			modulus: divSign ? Int128.neg(m) : m
-		};
-	}
-
-	/**
 		Returns the negative of `x`.
 	**/
 	@:op(-A) public static function neg(x:Int128):Int128 {
@@ -299,6 +270,18 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		return make(high, low);
 	}
 
+	@:op(A + B) public static inline function addInt(a:Int128, b:Int):Int128
+		return add(a, b);
+
+	@:op(A + B) public static inline function addInt64(a:Int128, b:Int64):Int128
+		return add(a, b);
+
+	@:op(A + B) public static inline function intAdd(a:Int, b:Int128):Int128
+		return add(a, b);
+
+	@:op(A + B) public static inline function int64Add(a:Int64, b:Int128):Int128
+		return add(a, b);
+
 	/**
 		Returns `a` minus `b`.
 	**/
@@ -309,6 +292,18 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 			high--;
 		return make(high, low);
 	}
+
+	@:op(A - B) public static inline function subInt(a:Int128, b:Int):Int128
+		return sub(a, b);
+
+	@:op(A - B) public static inline function subInt64(a:Int128, b:Int64):Int128
+		return sub(a, b);
+
+	@:op(A - B) public static inline function intSub(a:Int, b:Int128):Int128
+		return sub(a, b);
+
+	@:op(A - B) public static inline function int64Sub(a:Int64, b:Int128):Int128
+		return sub(a, b);
 
 	/**
 		Returns the product of `a` and `b`.
@@ -336,11 +331,35 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		return make(high, low);
 	}
 
+	@:op(A * B) public static inline function mulInt(a:Int128, b:Int):Int128
+		return mul(a, b);
+
+	@:op(A * B) public static inline function mulInt64(a:Int128, b:Int64):Int128
+		return mul(a, b);
+
+	@:op(A * B) public static inline function intMul(a:Int, b:Int128):Int128
+		return mul(a, b);
+
+	@:op(A * B) public static inline function int64Mul(a:Int64, b:Int128):Int128
+		return mul(a, b);
+
 	/**
 		Returns the quotient of `a` divided by `b`.
 	**/
 	@:op(A / B) public static function div(a:Int128, b:Int128):Int128
 		return divMod(a, b).quotient;
+
+	@:op(A / B) public static inline function divInt(a:Int128, b:Int):Int128
+		return div(a, b);
+
+	@:op(A / B) public static inline function divInt64(a:Int128, b:Int64):Int128
+		return div(a, b);
+
+	@:op(A / B) public static inline function intDiv(a:Int, b:Int128):Int128
+		return div(a, b);
+
+	@:op(A / B) public static inline function int64Div(a:Int64, b:Int128):Int128
+		return div(a, b);
 
 	/**
 		Returns the modulus of `a` divided by `b`.
@@ -348,11 +367,29 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	@:op(A % B) public static function mod(a:Int128, b:Int128):Int128
 		return divMod(a, b).modulus;
 
+	@:op(A % B) public static inline function modInt(a:Int128, b:Int):Int128
+		return mod(a, b);
+
+	@:op(A % B) public static inline function modInt64(a:Int128, b:Int64):Int128
+		return mod(a, b);
+
+	@:op(A % B) public static inline function intMod(a:Int, b:Int128):Int128
+		return mod(a, b);
+
+	@:op(A % B) public static inline function int64Mod(a:Int64, b:Int128):Int128
+		return mod(a, b);
+
 	/**
 		Returns `true` if `a` is equal to `b`.
 	**/
 	@:op(A == B) public static function eq(a:Int128, b:Int128):Bool
 		return a.high == b.high && a.low == b.low;
+
+	@:op(A == B) private static inline function eqInt(a:Int128, b:Int):Bool
+		return eq(a, b);
+
+	@:op(A == B) private static inline function eqInt64(a:Int128, b:Int64):Bool
+		return eq(a, b);
 
 	/**
 		Returns `true` if `a` is not equal to `b`.
@@ -360,17 +397,47 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	@:op(A != B) public static function neq(a:Int128, b:Int128):Bool
 		return a.high != b.high || a.low != b.low;
 
+	@:op(A != B) private static inline function neqInt(a:Int128, b:Int):Bool
+		return neq(a, b);
+
+	@:op(A != B) private static inline function neqInt64(a:Int128, b:Int64):Bool
+		return neq(a, b);
+
 	@:op(A < B) private static function lt(a:Int128, b:Int128):Bool
 		return compare(a, b) < 0;
+
+	@:op(A < B) private static inline function ltInt(a:Int128, b:Int):Bool
+		return lt(a, b);
+
+	@:op(A < B) private static inline function ltInt64(a:Int128, b:Int64):Bool
+		return lt(a, b);
 
 	@:op(A <= B) private static function lte(a:Int128, b:Int128):Bool
 		return compare(a, b) <= 0;
 
+	@:op(A <= B) private static inline function lteInt(a:Int128, b:Int):Bool
+		return lte(a, b);
+
+	@:op(A <= B) private static inline function lteInt64(a:Int128, b:Int64):Bool
+		return lte(a, b);
+
 	@:op(A > B) private static function gt(a:Int128, b:Int128):Bool
 		return compare(a, b) > 0;
 
+	@:op(A > B) private static inline function gtInt(a:Int128, b:Int):Bool
+		return gt(a, b);
+
+	@:op(A > B) private static inline function gtInt64(a:Int128, b:Int64):Bool
+		return gt(a, b);
+
 	@:op(A >= B) private static function gte(a:Int128, b:Int128):Bool
 		return compare(a, b) >= 0;
+
+	@:op(A >= B) private static inline function gteInt(a:Int128, b:Int):Bool
+		return gte(a, b);
+
+	@:op(A >= B) private static inline function gteInt64(a:Int128, b:Int64):Bool
+		return gte(a, b);
 
 	/**
 		Returns the bitwise NOT of `a`.
@@ -461,5 +528,5 @@ private class ___Int128 {
 		`toString` is only in the abstract.
 	**/
 	public inline function toString():String
-		return Int128.toStr(cast this);
+		return Int128.toStr(this);
 }

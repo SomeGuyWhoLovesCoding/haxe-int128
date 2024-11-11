@@ -139,8 +139,9 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 		if (i.isNeg()) {
 			neg = true;
 		}
+		var ten:Int64 = 10;
 		while (i != 0) {
-			var r = i.divMod10();
+			var r = i.divMod(ten);
 			if (r.modulus.isNeg()) {
 				str = Int64.neg(r.modulus).low + str;
 				i = Int64.neg(r.quotient);
@@ -213,12 +214,12 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 		};
 	}
 
-	/**
+	/*/**
 		Performs signed integer divison of `dividend` by `divisor`, but this time, you divide by 10 in an efficient way.
 		Returns `{ quotient : Int64, modulus : Int64 }`.
-	**/
+	///
 	public static function divMod10(v:Int64):{quotient:Int64, modulus:Int64} {
-		var n:Int64 = cast v;
+		var n:Int64 = v;
 
 		var divSign:Bool = n.isNeg();
 
@@ -240,7 +241,7 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 			quotient: divSign ? Int64.neg(q) : q,
 			modulus: divSign ? Int64.neg(m) : m
 		};
-	}
+	}*/
 
 	/**
 		Returns the negative of `x`.
@@ -292,6 +293,12 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 		return make(high, low);
 	}
 
+	@:op(A + B) public static inline function addInt(a:Int64, b:Int):Int64
+		return add(a, b);
+
+	@:op(A + B) public static inline function intAdd(a:Int, b:Int64):Int64
+		return add(a, b);
+
 	/**
 		Returns `a` minus `b`.
 	**/
@@ -302,6 +309,12 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 			high--;
 		return make(high, low);
 	}
+
+	@:op(A - B) public static inline function subInt(a:Int64, b:Int):Int64
+		return sub(a, b);
+
+	@:op(A - B) public static inline function intSub(a:Int, b:Int64):Int64
+		return sub(a, b);
 
 	/**
 		Returns the product of `a` and `b`.
@@ -329,11 +342,23 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 		return make(high, low);
 	}
 
+	@:op(A * B) public static inline function mulInt(a:Int64, b:Int):Int64
+		return mul(a, b);
+
+	@:op(A * B) public static inline function intMul(a:Int, b:Int64):Int64
+		return mul(a, b);
+
 	/**
 		Returns the quotient of `a` divided by `b`.
 	**/
 	@:op(A / B) public static function div(a:Int64, b:Int64):Int64
 		return divMod(a, b).quotient;
+
+	@:op(A / B) public static inline function divInt(a:Int64, b:Int):Int64
+		return div(a, b);
+
+	@:op(A / B) public static inline function intDiv(a:Int, b:Int64):Int64
+		return div(a, b);
 
 	/**
 		Returns the modulus of `a` divided by `b`.
@@ -341,29 +366,65 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 	@:op(A % B) public static function mod(a:Int64, b:Int64):Int64
 		return divMod(a, b).modulus;
 
+	@:op(A % B) public static inline function modInt(a:Int64, b:Int):Int64
+		return mod(a, b);
+
+	@:op(A % B) public static inline function intMod(a:Int, b:Int64):Int64
+		return div(a, b);
+
 	/**
 		Returns `true` if `a` is equal to `b`.
 	**/
 	@:op(A == B) public static function eq(a:Int64, b:Int64):Bool
 		return a.high == b.high && a.low == b.low;
 
+	@:op(A == B) private static inline function eqInt(a:Int64, b:Int):Bool
+		return eq(a, b);
+
 	/**
 		Returns `true` if `a` is not equal to `b`.
 	**/
-	@:op(A != B) public static function neq(a:Int64, b:Int64):Bool
+	@:op(A != B) public static inline function neq(a:Int64, b:Int64):Bool
 		return a.high != b.high || a.low != b.low;
 
-	@:op(A < B) private static function lt(a:Int64, b:Int64):Bool
+	@:op(A != B) private static inline function neqInt(a:Int64, b:Int):Bool
+		return neq(a, b);
+
+	@:op(A < B) private static inline function lt(a:Int64, b:Int64):Bool
 		return compare(a, b) < 0;
 
-	@:op(A <= B) private static function lte(a:Int64, b:Int64):Bool
+	@:op(A < B) private static inline function ltInt(a:Int64, b:Int):Bool
+		return lt(a, b);
+
+	@:op(A < B) private static inline function intLt(a:Int, b:Int64):Bool
+		return lt(a, b);
+
+	@:op(A <= B) private static inline function lte(a:Int64, b:Int64):Bool
 		return compare(a, b) <= 0;
 
-	@:op(A > B) private static function gt(a:Int64, b:Int64):Bool
+	@:op(A <= B) private static inline function lteInt(a:Int64, b:Int):Bool
+		return lte(a, b);
+
+	@:op(A <= B) private static inline function intLte(a:Int, b:Int64):Bool
+		return lte(a, b);
+
+	@:op(A > B) private static inline function gt(a:Int64, b:Int64):Bool
 		return compare(a, b) > 0;
 
-	@:op(A >= B) private static function gte(a:Int64, b:Int64):Bool
+	@:op(A > B) private static inline function gtInt(a:Int64, b:Int):Bool
+		return gt(a, b);
+
+	@:op(A > B) private static inline function intGt(a:Int, b:Int64):Bool
+		return gt(a, b);
+
+	@:op(A >= B) private static inline function gte(a:Int64, b:Int64):Bool
 		return compare(a, b) >= 0;
+
+	@:op(A >= B) private static inline function gteInt(a:Int64, b:Int):Bool
+		return gte(a, b);
+
+	@:op(A >= B) private static inline function intGte(a:Int, b:Int64):Bool
+		return gte(a, b);
 
 	/**
 		Returns the bitwise NOT of `a`.
@@ -454,5 +515,5 @@ private class ___Int64 {
 		`toString` is only in the abstract.
 	**/
 	public inline function toString():String
-		return Int64.toStr(cast this);
+		return Int64.toStr(this);
 }

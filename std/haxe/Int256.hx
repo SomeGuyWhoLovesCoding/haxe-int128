@@ -160,8 +160,9 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		if (i.isNeg()) {
 			neg = true;
 		}
+		var ten:Int64 = 10;
 		while (i != 0) {
-			var r = i.divMod10();
+			var r = i.divMod(ten);
 			if (r.modulus.isNeg()) {
 				str = Int256.neg(r.modulus).low + str;
 				i = Int256.neg(r.quotient);
@@ -235,37 +236,6 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	}
 
 	/**
-		Performs signed integer divison of `dividend` by `divisor`, but this time, you divide by 10 in an efficient way.
-		Returns `{ quotient : Int256, modulus : Int256 }`.
-	**/
-	public static function divMod10(v:Int256):{quotient:Int256, modulus:Int256} {
-		var n:Int256 = cast v;
-
-		var divSign:Bool = n.isNeg();
-
-		if (divSign) {
-			n = Int256.neg(n);
-		}
-
-		var q:Int256, r:Int256, m:Int256;
-		q = (n >> 1) + (n >> 2);
-		q += (q >> 4);
-		q += (q >> 8);
-		q += (q >> 16);
-		q += (q >> 32);
-		q += (q >> 64);
-		q += (q >> 128);
-		q >>= 3;
-		r = n - (((q << 2) + q) << 1);
-		q += (r > 9 ? 1 : 0);
-		m = n - (q * 10);
-		return {
-			quotient: divSign ? Int256.neg(q) : q,
-			modulus: divSign ? Int256.neg(m) : m
-		};
-	}
-
-	/**
 		Returns the negative of `x`.
 	**/
 	@:op(-A) public static function neg(x:Int256):Int256 {
@@ -315,6 +285,24 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		return make(high, low);
 	}
 
+	@:op(A + B) public static inline function addInt(a:Int256, b:Int):Int256
+		return add(a, b);
+
+	@:op(A + B) public static inline function addInt64(a:Int256, b:Int64):Int256
+		return add(a, b);
+
+	@:op(A + B) public static inline function addInt128(a:Int256, b:Int128):Int256
+		return add(a, b);
+
+	@:op(A + B) public static inline function intAdd(a:Int, b:Int256):Int256
+		return add(a, b);
+
+	@:op(A + B) public static inline function int64Add(a:Int64, b:Int256):Int256
+		return add(a, b);
+
+	@:op(A + B) public static inline function int128Add(a:Int128, b:Int256):Int256
+		return add(a, b);
+
 	/**
 		Returns `a` minus `b`.
 	**/
@@ -325,6 +313,24 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 			high--;
 		return make(high, low);
 	}
+
+	@:op(A - B) public static inline function subInt(a:Int256, b:Int):Int256
+		return sub(a, b);
+
+	@:op(A - B) public static inline function subInt64(a:Int256, b:Int64):Int256
+		return sub(a, b);
+
+	@:op(A - B) public static inline function subInt128(a:Int256, b:Int128):Int256
+		return sub(a, b);
+
+	@:op(A - B) public static inline function intSub(a:Int, b:Int256):Int256
+		return sub(a, b);
+
+	@:op(A - B) public static inline function int64Sub(a:Int64, b:Int256):Int256
+		return sub(a, b);
+
+	@:op(A - B) public static inline function int128Sub(a:Int128, b:Int256):Int256
+		return sub(a, b);
 
 	/**
 		Returns the product of `a` and `b`.
@@ -352,11 +358,47 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		return make(high, low);
 	}
 
+	@:op(A * B) public static inline function mulInt(a:Int256, b:Int):Int256
+		return mul(a, b);
+
+	@:op(A * B) public static inline function mulInt64(a:Int256, b:Int64):Int256
+		return mul(a, b);
+
+	@:op(A * B) public static inline function mulInt128(a:Int256, b:Int128):Int256
+		return mul(a, b);
+
+	@:op(A * B) public static inline function intMul(a:Int, b:Int256):Int256
+		return mul(a, b);
+
+	@:op(A * B) public static inline function int64Mul(a:Int64, b:Int256):Int256
+		return mul(a, b);
+
+	@:op(A * B) public static inline function int128Mul(a:Int128, b:Int256):Int256
+		return mul(a, b);
+
 	/**
 		Returns the quotient of `a` divided by `b`.
 	**/
 	@:op(A / B) public static function div(a:Int256, b:Int256):Int256
 		return divMod(a, b).quotient;
+
+	@:op(A / B) public static inline function divInt(a:Int256, b:Int):Int256
+		return div(a, b);
+
+	@:op(A / B) public static inline function divInt64(a:Int256, b:Int64):Int256
+		return div(a, b);
+
+	@:op(A / B) public static inline function divInt128(a:Int256, b:Int128):Int256
+		return div(a, b);
+
+	@:op(A / B) public static inline function intDiv(a:Int, b:Int256):Int256
+		return div(a, b);
+
+	@:op(A / B) public static inline function int64Div(a:Int64, b:Int256):Int256
+		return div(a, b);
+
+	@:op(A / B) public static inline function int128Div(a:Int128, b:Int256):Int256
+		return div(a, b);
 
 	/**
 		Returns the modulus of `a` divided by `b`.
@@ -364,11 +406,38 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	@:op(A % B) public static function mod(a:Int256, b:Int256):Int256
 		return divMod(a, b).modulus;
 
+	@:op(A % B) public static inline function modInt(a:Int256, b:Int):Int256
+		return mod(a, b);
+
+	@:op(A % B) public static inline function modInt64(a:Int256, b:Int64):Int256
+		return mod(a, b);
+
+	@:op(A % B) public static inline function modInt128(a:Int256, b:Int128):Int256
+		return mod(a, b);
+
+	@:op(A % B) public static inline function intMod(a:Int, b:Int256):Int256
+		return mod(a, b);
+
+	@:op(A % B) public static inline function int64Mod(a:Int64, b:Int256):Int256
+		return mod(a, b);
+
+	@:op(A % B) public static inline function int128Mod(a:Int128, b:Int256):Int256
+		return mod(a, b);
+
 	/**
 		Returns `true` if `a` is equal to `b`.
 	**/
 	@:op(A == B) public static function eq(a:Int256, b:Int256):Bool
 		return a.high == b.high && a.low == b.low;
+
+	@:op(A == B) private static inline function eqInt(a:Int256, b:Int):Bool
+		return eq(a, b);
+
+	@:op(A == B) private static inline function eqInt64(a:Int256, b:Int64):Bool
+		return eq(a, b);
+
+	@:op(A == B) private static inline function eqInt128(a:Int256, b:Int128):Bool
+		return eq(a, b);
 
 	/**
 		Returns `true` if `a` is not equal to `b`.
@@ -376,17 +445,62 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	@:op(A != B) public static function neq(a:Int256, b:Int256):Bool
 		return a.high != b.high || a.low != b.low;
 
+	@:op(A != B) private static inline function neqInt(a:Int256, b:Int):Bool
+		return neq(a, b);
+
+	@:op(A != B) private static inline function neqInt64(a:Int256, b:Int64):Bool
+		return neq(a, b);
+
+	@:op(A != B) private static inline function neqInt128(a:Int256, b:Int128):Bool
+		return neq(a, b);
+
 	@:op(A < B) private static function lt(a:Int256, b:Int256):Bool
 		return compare(a, b) < 0;
+
+	@:op(A < B) private static inline function ltInt(a:Int256, b:Int):Bool
+		return lt(a, b);
+
+	@:op(A < B) private static inline function ltInt64(a:Int256, b:Int64):Bool
+		return lt(a, b);
+
+	@:op(A < B) private static inline function ltInt128(a:Int256, b:Int128):Bool
+		return lt(a, b);
 
 	@:op(A <= B) private static function lte(a:Int256, b:Int256):Bool
 		return compare(a, b) <= 0;
 
+	@:op(A <= B) private static inline function lteInt(a:Int256, b:Int):Bool
+		return lte(a, b);
+
+	@:op(A <= B) private static inline function lteInt64(a:Int256, b:Int64):Bool
+		return lte(a, b);
+
+	@:op(A <= B) private static inline function lteInt128(a:Int256, b:Int128):Bool
+		return lte(a, b);
+
 	@:op(A > B) private static function gt(a:Int256, b:Int256):Bool
 		return compare(a, b) > 0;
 
+	@:op(A > B) private static inline function gtInt(a:Int256, b:Int):Bool
+		return gt(a, b);
+
+	@:op(A > B) private static inline function gtInt64(a:Int256, b:Int64):Bool
+		return gt(a, b);
+
+	@:op(A > B) private static inline function gtInt128(a:Int256, b:Int128):Bool
+		return gt(a, b);
+
 	@:op(A >= B) private static function gte(a:Int256, b:Int256):Bool
 		return compare(a, b) >= 0;
+
+	@:op(A >= B) private static inline function gteInt(a:Int256, b:Int):Bool
+		return gte(a, b);
+
+	@:op(A >= B) private static inline function gteInt64(a:Int256, b:Int64):Bool
+		return gte(a, b);
+
+	@:op(A >= B) private static inline function gteInt128(a:Int256, b:Int128):Bool
+		return gte(a, b);
 
 	/**
 		Returns the bitwise NOT of `a`.
@@ -477,5 +591,5 @@ private class ___Int256 {
 		`toString` is only in the abstract.
 	**/
 	public inline function toString():String
-		return Int256.toStr(cast this);
+		return Int256.toStr(this);
 }
