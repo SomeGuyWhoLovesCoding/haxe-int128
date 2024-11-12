@@ -27,7 +27,6 @@ using haxe.Int256;
 /**
 	A cross-platform signed 256-bit integer.
 	Int256 instances can be created from two 128-bit words using `Int256.make()`.
-	NOTE: This class is a beta.
 **/
 #if flash
 @:notNull
@@ -152,28 +151,91 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 		return x.toString();
 
 	function toString():String {
-		var i:Int256 = cast this;
-		if (i == 0)
-			return "0";
-		var str = "";
-		var neg = false;
-		if (i.isNeg()) {
-			neg = true;
+		var v = this;
+
+		// This is here because the numeral representation of the number "-57896044618658097711785492504343953926634992332820282019728792003956564819968" is broken as the last part doesn't propery display.
+		if (v == Int256Helper.minValue) {
+			return "-57896044618658097711785492504343953926634992332820282019728792003956564819968";
 		}
-		var ten:Int64 = 10;
-		while (i != 0) {
-			var r = i.divMod(ten);
-			if (r.modulus.isNeg()) {
-				str = Int256.neg(r.modulus).low + str;
-				i = Int256.neg(r.quotient);
-			} else {
-				str = r.modulus.low + str;
-				i = r.quotient;
+
+		var sign = Int256.isNeg(v);
+		if (sign) {
+			v = Int256.neg(v);
+		}
+
+		var result = "";
+
+		var part1 = v;
+		if (Int256.isNeg(part1)) {
+			part1 = Int256.neg(part1);
+		}
+		result = Int64Helper._fastPadZeroes((v % Int256Helper.BILLION).low.low.low, v < Int256Helper.BILLION);
+
+		if (v >= Int256Helper.BILLION) {
+			var part2:Int256 = Int256.div(v, Int256Helper.BILLION) % Int256Helper.BILLION;
+			if (Int256.isNeg(part2)) {
+				part2 = Int256.neg(part2);
+			}
+			result = Int64Helper._fastPadZeroes(part2.low.low.low, v < Int256Helper.QUINTILLION) + result;
+
+			if (v >= Int256Helper.QUINTILLION) {
+				var part3:Int256 = Int256.div(v, Int256Helper.QUINTILLION) % Int256Helper.BILLION;
+				if (Int256.isNeg(part3)) {
+					part3 = Int256.neg(part3);
+				}
+				result = Int64Helper._fastPadZeroes(part3.low.low.low, v < Int256Helper.OCTILLION) + result;
+
+				if (v >= Int256Helper.OCTILLION) {
+					var part4:Int256 = Int256.div(v, Int256Helper.OCTILLION) % Int256Helper.BILLION;
+					if (Int256.isNeg(part4)) {
+						part4 = Int256.neg(part4);
+					}
+					result = Int64Helper._fastPadZeroes(part4.low.low.low, v < Int256Helper.UNDECILLION) + result;
+
+					if (v >= Int256Helper.UNDECILLION) {
+						var part5:Int256 = Int256.div(v, Int256Helper.UNDECILLION) % Int256Helper.BILLION;
+						if (Int256.isNeg(part5)) {
+							part5 = Int256.neg(part5);
+						}
+						result = Int64Helper._fastPadZeroes(part5.low.low.low, v < Int256Helper.UHHHHHHHHHH) + result;
+
+						if (v >= Int256Helper.UHHHHHHHHHH) {
+							var part6:Int256 = Int256.div(v, Int256Helper.UHHHHHHHHHH) % Int256Helper.BILLION;
+							if (Int256.isNeg(part6)) {
+								part6 = Int256.neg(part6);
+							}
+							result = Int64Helper._fastPadZeroes(part6.low.low.low, v < Int256Helper.UMMMMMMMMMM) + result;
+
+							if (v >= Int256Helper.UMMMMMMMMMM) {
+								var part7:Int256 = Int256.div(v, Int256Helper.UMMMMMMMMMM) % Int256Helper.BILLION;
+								if (Int256.isNeg(part7)) {
+									part7 = Int256.neg(part7);
+								}
+								result = Int64Helper._fastPadZeroes(part7.low.low.low, v < Int256Helper.WHATTHEFUCK) + result;
+
+								if (v >= Int256Helper.WHATTHEFUCK) {
+									var part8:Int256 = Int256.div(v, Int256Helper.WHATTHEFUCK) % Int256Helper.BILLION;
+									if (Int256.isNeg(part8)) {
+										part8 = Int256.neg(part8);
+									}
+									result = Int64Helper._fastPadZeroes(part8.low.low.low, v < Int256Helper.FUCKINGWHAT) + result;
+
+									if (v >= Int256Helper.FUCKINGWHAT) {
+										var part9:Int256 = Int256.div(v, Int256Helper.FUCKINGWHAT) % Int256Helper.BILLION;
+										if (Int256.isNeg(part9)) {
+											part9 = Int256.neg(part9);
+										}
+										result = Std.string(part9.low.low.low) + result;
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-		if (neg)
-			str = "-" + str;
-		return str;
+
+		return (sign ? '-' : '') + result;
 	}
 
 	public static function parseString(sParam:String):Int256 {
@@ -191,11 +253,10 @@ abstract Int256(__Int256) from __Int256 to __Int256 {
 	public static function divMod(dividend:Int256, divisor:Int256):{quotient:Int256, modulus:Int256} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (toInt(divisor)) {
-				case 0:
-					throw "divide by zero";
-				case 1:
-					return {quotient: dividend.copy(), modulus: 0};
+			if (divisor.low == 0) {
+				throw "divide by zero";
+			} else if (divisor.low == 1) {
+				return {quotient: dividend.copy(), modulus: 0};
 			}
 		}
 

@@ -194,4 +194,22 @@ class Int512Helper {
 		This is handy for type comparison.
 	 */
 	public static var maxValue32U:Int512 = Int64.make(0, -1);
+
+	public static var BILLION:Int512 = 1000000000;
+	public static var QUINTILLION:Int512 = BILLION * BILLION;
+	public static var OCTILLION:Int512 = QUINTILLION * BILLION;
+	public static var UNDECILLION:Int512 = OCTILLION * BILLION;
+	public static var UHHHHHHHHHH:Int512 = UNDECILLION * BILLION;
+	public static var UMMMMMMMMMM:Int512 = UHHHHHHHHHH * BILLION;
+	public static var WHATTHEFUCK:Int512 = UMMMMMMMMMM * BILLION;
+	public static var FUCKINGWHAT:Int512 = WHATTHEFUCK * BILLION;
+	public static var WHATTHEFUCK2:Int512 = FUCKINGWHAT * BILLION;
+	public static var FUCKINGWHAT2:Int512 = WHATTHEFUCK2 * BILLION;
+	public static var WHATTHEFUCK3:Int512 = FUCKINGWHAT2 * BILLION;
+	public static var FUCKINGWHAT3:Int512 = WHATTHEFUCK3 * BILLION;
+	public static var WHATTHEFUCK4:Int512 = FUCKINGWHAT3 * BILLION;
+	public static var FUCKINGWHAT4:Int512 = WHATTHEFUCK4 * BILLION;
+	public static var WHATTHEFUCK5:Int512 = FUCKINGWHAT4 * BILLION;
+	public static var FUCKINGWHAT5:Int512 = WHATTHEFUCK5 * BILLION;
+	public static var FUCKFUCKFUCK:Int512 = FUCKINGWHAT5 * BILLION;
 }

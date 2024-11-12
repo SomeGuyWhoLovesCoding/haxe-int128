@@ -27,7 +27,6 @@ using haxe.Int128;
 /**
 	A cross-platform signed 128-bit integer.
 	Int128 instances can be created from two 64-bit words using `Int128.make()`.
-	NOTE: This class is a beta.
 **/
 #if flash
 @:notNull
@@ -137,28 +136,59 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 		return x.toString();
 
 	function toString():String {
-		var i:Int128 = cast this;
-		if (i == 0)
-			return "0";
-		var str = "";
-		var neg = false;
-		if (i.isNeg()) {
-			neg = true;
+		var v = this;
+
+		// This is here because the numeral representation of the number "-170141183460469231731687303715884105728" is broken as the last part doesn't propery display.
+		if (v == Int128Helper.minValue) {
+			return "-170141183460469231731687303715884105728";
 		}
-		var ten:Int128 = 10;
-		while (i != 0) {
-			var r = i.divMod(ten);
-			if (r.modulus.isNeg()) {
-				str = Int128.neg(r.modulus).low + str;
-				i = Int128.neg(r.quotient);
-			} else {
-				str = r.modulus.low + str;
-				i = r.quotient;
+
+		var sign = Int128.isNeg(v);
+		if (sign) {
+			v = Int128.neg(v);
+		}
+
+		var result = "";
+
+		var part1 = v;
+		if (Int128.isNeg(part1)) {
+			part1 = Int128.neg(part1);
+		}
+		result = Int64Helper._fastPadZeroes((v % Int128Helper.BILLION).low.low, v < Int128Helper.BILLION);
+
+		if (v >= Int128Helper.BILLION) {
+			var part2:Int128 = Int128.div(v, Int128Helper.BILLION) % Int128Helper.BILLION;
+			if (Int128.isNeg(part2)) {
+				part2 = Int128.neg(part2);
+			}
+			result = Int64Helper._fastPadZeroes(part2.low.low, v < Int128Helper.QUINTILLION) + result;
+
+			if (v >= Int128Helper.QUINTILLION) {
+				var part3:Int128 = Int128.div(v, Int128Helper.QUINTILLION) % Int128Helper.BILLION;
+				if (Int128.isNeg(part3)) {
+					part3 = Int128.neg(part3);
+				}
+				result = Int64Helper._fastPadZeroes(part3.low.low, v < Int128Helper.OCTILLION) + result;
+
+				if (v >= Int128Helper.OCTILLION) {
+					var part4:Int128 = Int128.div(v, Int128Helper.OCTILLION) % Int128Helper.BILLION;
+					if (Int128.isNeg(part4)) {
+						part4 = Int128.neg(part4);
+					}
+					result = Int64Helper._fastPadZeroes(part4.low.low, v < Int128Helper.UNDECILLION) + result;
+
+					if (v >= Int128Helper.UNDECILLION) {
+						var part5:Int128 = Int128.div(v, Int128Helper.UNDECILLION) % Int128Helper.BILLION;
+						if (Int128.isNeg(part5)) {
+							part5 = Int128.neg(part5);
+						}
+						result = Std.string(part5.low.low) + result;
+					}
+				}
 			}
 		}
-		if (neg)
-			str = "-" + str;
-		return str;
+
+		return (sign ? '-' : '') + result;
 	}
 
 	public static function parseString(sParam:String):Int128 {
@@ -176,11 +206,10 @@ abstract Int128(__Int128) from __Int128 to __Int128 {
 	public static function divMod(dividend:Int128, divisor:Int128):{quotient:Int128, modulus:Int128} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (toInt(divisor)) {
-				case 0:
-					throw "divide by zero";
-				case 1:
-					return {quotient: dividend.copy(), modulus: 0};
+			if (divisor.low == 0) {
+				throw "divide by zero";
+			} else if (divisor.low == 1) {
+				return {quotient: dividend.copy(), modulus: 0};
 			}
 		}
 

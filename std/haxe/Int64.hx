@@ -131,28 +131,43 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 		return x.toString();
 
 	function toString():String {
-		var i:Int64 = cast this;
-		if (i == 0)
-			return "0";
-		var str = "";
-		var neg = false;
-		if (i.isNeg()) {
-			neg = true;
+		var v = this;
+
+		// This is here because the numeral representation of the number "-9223372036854775808" is broken as the last part doesn't propery display.
+		if (v == Int64Helper.minValue) {
+			return "-9223372036854775808";
 		}
-		var ten:Int64 = 10;
-		while (i != 0) {
-			var r = i.divMod(ten);
-			if (r.modulus.isNeg()) {
-				str = Int64.neg(r.modulus).low + str;
-				i = Int64.neg(r.quotient);
-			} else {
-				str = r.modulus.low + str;
-				i = r.quotient;
+
+		var sign = Int64.isNeg(v);
+		if (sign) {
+			v = Int64.neg(v);
+		}
+
+		var result = "";
+
+		var part1 = v;
+		if (Int64.isNeg(part1)) {
+			part1 = Int64.neg(part1);
+		}
+		result = Int64Helper._fastPadZeroes(Int64.toInt(v % Int64Helper.BILLION), v < Int64Helper.BILLION);
+
+		if (v >= Int64Helper.BILLION) {
+			var part2:Int64 = Int64.div(v, Int64Helper.BILLION) % Int64Helper.BILLION;
+			if (Int64.isNeg(part2)) {
+				part2 = Int64.neg(part2);
+			}
+			result = Int64Helper._fastPadZeroes(part2.low, v < Int64Helper.QUINTILLION) + result;
+
+			if (v >= Int64Helper.QUINTILLION) {
+				var part3:Int64 = Int64.div(v, Int64Helper.QUINTILLION) % Int64Helper.BILLION;
+				if (Int64.isNeg(part3)) {
+					part3 = Int64.neg(part3);
+				}
+				result = Std.string(part3.low) + result;
 			}
 		}
-		if (neg)
-			str = "-" + str;
-		return str;
+
+		return (sign ? '-' : '') + result;
 	}
 
 	public static function parseString(sParam:String):Int64 {
@@ -170,11 +185,10 @@ abstract Int64(__Int64) from __Int64 to __Int64 {
 	public static function divMod(dividend:Int64, divisor:Int64):{quotient:Int64, modulus:Int64} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (divisor.low) {
-				case 0:
-					throw "divide by zero";
-				case 1:
-					return {quotient: dividend.copy(), modulus: 0};
+			if (divisor.low == 0) {
+				throw "divide by zero";
+			} else if (divisor.low == 1) {
+				return {quotient: dividend.copy(), modulus: 0};
 			}
 		}
 

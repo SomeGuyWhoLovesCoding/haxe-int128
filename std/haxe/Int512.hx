@@ -27,7 +27,7 @@ using haxe.Int512;
 /**
 	A cross-platform signed 512-bit integer.
 	Int512 instances can be created from two 256-bit words using `Int512.make()`.
-	NOTE: This class is a beta.
+	NOTE: This class was unused because the new toString() method can be very messy. This is because we're branching if statements to save on cpu cycles.
 **/
 #if flash
 @:notNull
@@ -167,28 +167,163 @@ abstract Int512(__Int512) from __Int512 to __Int512 {
 		return x.toString();
 
 	function toString():String {
-		var i:Int512 = cast this;
-		if (i == 0)
-			return "0";
-		var str = "";
-		var neg = false;
-		if (i.isNeg()) {
-			neg = true;
+		var v = this;
+
+		// This is here because the numeral representation of the number "-6703903964971298549787012499102923063739682910296196688861780721860882015036773488400937149083451713845015929093243025426876941405973284973216824503042048" is broken as the last part doesn't propery display.
+		if (v == Int512Helper.minValue) {
+			return "-6703903964971298549787012499102923063739682910296196688861780721860882015036773488400937149083451713845015929093243025426876941405973284973216824503042048";
 		}
-		var ten:Int512 = 10;
-		while (i != 0) {
-			var r = i.divMod(ten);
-			if (r.modulus.isNeg()) {
-				str = Int512.neg(r.modulus).low + str;
-				i = Int512.neg(r.quotient);
-			} else {
-				str = r.modulus.low + str;
-				i = r.quotient;
+
+		var sign = Int512.isNeg(v);
+		if (sign) {
+			v = Int512.neg(v);
+		}
+
+		var result = "";
+
+		var part1 = v;
+		if (Int512.isNeg(part1)) {
+			part1 = Int512.neg(part1);
+		}
+		result = Int64Helper._fastPadZeroes((v % Int512Helper.BILLION).low.low.low.low, v < Int512Helper.BILLION);
+
+		if (v >= Int512Helper.BILLION) {
+			var part2:Int512 = Int512.div(v, Int512Helper.BILLION) % Int512Helper.BILLION;
+			if (Int512.isNeg(part2)) {
+				part2 = Int512.neg(part2);
+			}
+			result = Int64Helper._fastPadZeroes(part2.low.low.low.low, v < Int512Helper.QUINTILLION) + result;
+
+			if (v >= Int512Helper.QUINTILLION) {
+				var part3:Int512 = Int512.div(v, Int512Helper.QUINTILLION) % Int512Helper.BILLION;
+				if (Int512.isNeg(part3)) {
+					part3 = Int512.neg(part3);
+				}
+				result = Int64Helper._fastPadZeroes(part3.low.low.low.low, v < Int512Helper.OCTILLION) + result;
+
+				if (v >= Int512Helper.OCTILLION) {
+					var part4:Int512 = Int512.div(v, Int512Helper.OCTILLION) % Int512Helper.BILLION;
+					if (Int512.isNeg(part4)) {
+						part4 = Int512.neg(part4);
+					}
+					result = Int64Helper._fastPadZeroes(part4.low.low.low.low, v < Int512Helper.UNDECILLION) + result;
+
+					if (v >= Int512Helper.UNDECILLION) {
+						var part5:Int512 = Int512.div(v, Int512Helper.UNDECILLION) % Int512Helper.BILLION;
+						if (Int512.isNeg(part5)) {
+							part5 = Int512.neg(part5);
+						}
+						result = Int64Helper._fastPadZeroes(part5.low.low.low.low, v < Int512Helper.UHHHHHHHHHH) + result;
+
+						if (v >= Int512Helper.UHHHHHHHHHH) {
+							var part6:Int512 = Int512.div(v, Int512Helper.UHHHHHHHHHH) % Int512Helper.BILLION;
+							if (Int512.isNeg(part6)) {
+								part6 = Int512.neg(part6);
+							}
+							result = Int64Helper._fastPadZeroes(part6.low.low.low.low, v < Int512Helper.UMMMMMMMMMM) + result;
+
+							if (v >= Int512Helper.UMMMMMMMMMM) {
+								var part7:Int512 = Int512.div(v, Int512Helper.UMMMMMMMMMM) % Int512Helper.BILLION;
+								if (Int512.isNeg(part7)) {
+									part7 = Int512.neg(part7);
+								}
+								result = Int64Helper._fastPadZeroes(part7.low.low.low.low, v < Int512Helper.WHATTHEFUCK) + result;
+
+								if (v >= Int512Helper.WHATTHEFUCK) {
+									var part8:Int512 = Int512.div(v, Int512Helper.WHATTHEFUCK) % Int512Helper.BILLION;
+									if (Int512.isNeg(part8)) {
+										part8 = Int512.neg(part8);
+									}
+									result = Int64Helper._fastPadZeroes(part8.low.low.low.low, v < Int512Helper.FUCKINGWHAT) + result;
+
+									if (v >= Int512Helper.FUCKINGWHAT) {
+										var part9:Int512 = Int512.div(v, Int512Helper.FUCKINGWHAT) % Int512Helper.BILLION;
+										if (Int512.isNeg(part9)) {
+											part9 = Int512.neg(part9);
+										}
+										result = Int64Helper._fastPadZeroes(part9.low.low.low.low, v < Int512Helper.WHATTHEFUCK2) + result;
+
+										if (v >= Int512Helper.WHATTHEFUCK2) {
+											var part10:Int512 = Int512.div(v, Int512Helper.WHATTHEFUCK2) % Int512Helper.BILLION;
+											if (Int512.isNeg(part10)) {
+												part10 = Int512.neg(part10);
+											}
+											result = Int64Helper._fastPadZeroes(part10.low.low.low.low, v < Int512Helper.FUCKINGWHAT2) + result;
+
+											if (v >= Int512Helper.FUCKINGWHAT2) {
+												var part11:Int512 = Int512.div(v, Int512Helper.FUCKINGWHAT2) % Int512Helper.BILLION;
+												if (Int512.isNeg(part11)) {
+													part11 = Int512.neg(part11);
+												}
+												result = Int64Helper._fastPadZeroes(part11.low.low.low.low, v < Int512Helper.WHATTHEFUCK3) + result;
+
+												if (v >= Int512Helper.WHATTHEFUCK3) {
+													var part12:Int512 = Int512.div(v, Int512Helper.WHATTHEFUCK3) % Int512Helper.BILLION;
+													if (Int512.isNeg(part12)) {
+														part12 = Int512.neg(part12);
+													}
+													result = Int64Helper._fastPadZeroes(part12.low.low.low.low, v < Int512Helper.FUCKINGWHAT3) + result;
+
+													if (v >= Int512Helper.FUCKINGWHAT3) {
+														var part13:Int512 = Int512.div(v, Int512Helper.FUCKINGWHAT3) % Int512Helper.BILLION;
+														if (Int512.isNeg(part13)) {
+															part13 = Int512.neg(part13);
+														}
+														result = Int64Helper._fastPadZeroes(part13.low.low.low.low, v < Int512Helper.WHATTHEFUCK4) + result;
+
+														if (v >= Int512Helper.WHATTHEFUCK4) {
+															var part14:Int512 = Int512.div(v, Int512Helper.WHATTHEFUCK4) % Int512Helper.BILLION;
+															if (Int512.isNeg(part14)) {
+																part14 = Int512.neg(part14);
+															}
+															result = Int64Helper._fastPadZeroes(part14.low.low.low.low, v < Int512Helper.FUCKINGWHAT4) + result;
+
+															if (v >= Int512Helper.FUCKINGWHAT4) {
+																var part15:Int512 = Int512.div(v, Int512Helper.FUCKINGWHAT4) % Int512Helper.BILLION;
+																if (Int512.isNeg(part15)) {
+																	part15 = Int512.neg(part15);
+																}
+																result = Int64Helper._fastPadZeroes(part15.low.low.low.low, v < Int512Helper.WHATTHEFUCK5) + result;
+
+																if (v >= Int512Helper.WHATTHEFUCK5) {
+																	var part16:Int512 = Int512.div(v, Int512Helper.WHATTHEFUCK5) % Int512Helper.BILLION;
+																	if (Int512.isNeg(part16)) {
+																		part16 = Int512.neg(part16);
+																	}
+																	result = Int64Helper._fastPadZeroes(part16.low.low.low.low, v < Int512Helper.FUCKINGWHAT5) + result;
+
+																	if (v >= Int512Helper.FUCKINGWHAT5) {
+																		var part17:Int512 = Int512.div(v, Int512Helper.FUCKINGWHAT5) % Int512Helper.BILLION;
+																		if (Int512.isNeg(part17)) {
+																			part17 = Int512.neg(part17);
+																		}
+																		result = Int64Helper._fastPadZeroes(part17.low.low.low.low, v < Int512Helper.FUCKFUCKFUCK) + result;
+
+																		if (v >= Int512Helper.FUCKFUCKFUCK) {
+																			var part18:Int512 = Int512.div(v, Int512Helper.FUCKFUCKFUCK) % Int512Helper.BILLION;
+																			if (Int512.isNeg(part18)) {
+																				part18 = Int512.neg(part18);
+																			}
+																			result = Std.string(part18.low.low.low.low) + result;
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-		if (neg)
-			str = "-" + str;
-		return str;
+
+		return (sign ? '-' : '') + result;
 	}
 
 	public static function parseString(sParam:String):Int512 {
@@ -206,11 +341,10 @@ abstract Int512(__Int512) from __Int512 to __Int512 {
 	public static function divMod(dividend:Int512, divisor:Int512):{quotient:Int512, modulus:Int512} {
 		// Handle special cases of 0 and 1
 		if (divisor.high == 0) {
-			switch (toInt(divisor)) {
-				case 0:
-					throw "divide by zero";
-				case 1:
-					return {quotient: dividend.copy(), modulus: 0};
+			if (divisor.low == 0) {
+				throw "divide by zero";
+			} else if (divisor.low == 1) {
+				return {quotient: dividend.copy(), modulus: 0};
 			}
 		}
 

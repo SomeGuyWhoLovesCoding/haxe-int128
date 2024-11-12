@@ -141,4 +141,32 @@ class Int64Helper {
 		This is handy for type comparison.
 	 */
 	public static var maxValue32U:Int64 = Int64.make(0, -1);
+
+	public static var BILLION:Int64 = 1000000000;
+	public static var QUINTILLION:Int64 = BILLION * BILLION;
+
+	public static inline function _fastPadZeroes(v:Int, skip:Bool = false) {
+		var result = Std.string(v);
+		if (!skip) {
+			switch (result.length) {
+				case 1:
+					result = '00000000$v';
+				case 2:
+					result = '0000000$v';
+				case 3:
+					result = '000000$v';
+				case 4:
+					result = '00000$v';
+				case 5:
+					result = '0000$v';
+				case 6:
+					result = '000$v';
+				case 7:
+					result = '00$v';
+				case 8:
+					result = '0$v';
+			}
+		}
+		return result;
+	}
 }

@@ -158,4 +158,9 @@ class Int128Helper {
 		This is handy for type comparison.
 	 */
 	public static var maxValue32U:Int128 = Int64.make(0, -1);
+
+	public static var BILLION:Int128 = 1000000000;
+	public static var QUINTILLION:Int128 = BILLION * BILLION;
+	public static var OCTILLION:Int128 = QUINTILLION * BILLION;
+	public static var UNDECILLION:Int128 = OCTILLION * BILLION;
 }

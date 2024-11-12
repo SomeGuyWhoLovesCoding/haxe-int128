@@ -176,4 +176,13 @@ class Int256Helper {
 		This is handy for type comparison.
 	 */
 	public static var maxValue32U:Int256 = Int64.make(0, -1);
+
+	public static var BILLION:Int256 = 1000000000;
+	public static var QUINTILLION:Int256 = BILLION * BILLION;
+	public static var OCTILLION:Int256 = QUINTILLION * BILLION;
+	public static var UNDECILLION:Int256 = OCTILLION * BILLION;
+	public static var UHHHHHHHHHH:Int256 = UNDECILLION * BILLION;
+	public static var UMMMMMMMMMM:Int256 = UHHHHHHHHHH * BILLION;
+	public static var WHATTHEFUCK:Int256 = UMMMMMMMMMM * BILLION;
+	public static var FUCKINGWHAT:Int256 = WHATTHEFUCK * BILLION;
 }
